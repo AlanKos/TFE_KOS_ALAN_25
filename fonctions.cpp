@@ -2,7 +2,6 @@
 #include <math.h>
 float gX = 0, gY = 0, gZ = 0;
 float aX, aY, aZ;
-const float ALPHA = 0.9;
 //question sur optimisation de la taille de code!!!!
 MPU9250_asukiaaa mySensor;
 Adafruit_GPS GPS(&GPS_SERIAL);
@@ -123,9 +122,9 @@ void updateAcceleration() {
     float rawX = mySensor.accelX();
     float rawY = mySensor.accelY();
     float rawZ = mySensor.accelZ();
-    gX = ALPHA * gX + (1 - ALPHA) * rawX;
-    gY = ALPHA * gY + (1 - ALPHA) * rawY;
-    gZ = ALPHA * gZ + (1 - ALPHA) * rawZ;
+    gX = 0.9 * gX + (1 - 0.9) * rawX;
+    gY = 0.9 * gY + (1 - 0.9) * rawY;
+    gZ = 0.9 * gZ + (1 - 0.9) * rawZ;
     aX = rawX - gX;
     aY = rawY - gY;
     aZ = rawZ - gZ;
