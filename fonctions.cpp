@@ -1,11 +1,17 @@
 #include "fonctions.h"
+#include <math.h>
+float gX = 0, gY = 0, gZ = 0;
+float aX, aY, aZ;
+const float ALPHA = 0.9;
+//question sur optimisation de la taille de code!!!!
 MPU9250_asukiaaa mySensor;
 Adafruit_GPS GPS(&GPS_SERIAL);
 Adafruit_BMP280 bmp;
 const int txPower = 20;
 int counter = 0;
 // Initialisation des capteurs
-void initialiserCapteurs() {
+void initialiserCapteurs() 
+{
   Serial.println("Initialisation des capteurs...");
   // Initialisation du bus I2C
   Wire.begin(SDA_PIN, SCL_PIN);
@@ -26,7 +32,7 @@ void initialiserCapteurs() {
   //Initialisation du LoRa
   LoRa.setPins(ss, rst, dio0);
   LoRa.begin(433E6);
-  LoRa.setTxPower(txPower);        // Définit la puissance de transmission à la valeur maximale (20 dBm)
+  LoRa.setTxPower(txPower);          // Définit la puissance de transmission à la valeur maximale (20 dBm)
   LoRa.setSpreadingFactor(12);       // Définit le facteur d'étalement à 12 (pour une portée plus longue)
   LoRa.setSignalBandwidth(125E3);    // Définit la largeur de bande à 125 kHz (courant pour la longue portée)
   LoRa.setCodingRate4(5);            // Définit le taux de codage à 4/5 pour améliorer la fiabilité
@@ -45,6 +51,9 @@ void lireMPU9250() {
     Serial.print(mySensor.accelY());
     Serial.print(", Z: ");
     Serial.println(mySensor.accelZ());
+    aX = mySensor.accelX();
+    aY = mySensor.accelY();
+    aZ = mySensor.accelZ();
   }
   if (mySensor.gyroUpdate() == 0) {
     Serial.print("Gyro - X: ");
@@ -77,7 +86,7 @@ void lireBMP280() {
   Serial.print(bmp.readPressure() / 100.0);
   Serial.println(" hPa");
   Serial.print("Altitude: ");
-  Serial.print(bmp.readAltitude(1013.25));
+  Serial.print(bmp.readAltitude(1022.5));
   Serial.println(" m");
 }
 // Envoi des données par LoRa
@@ -92,10 +101,12 @@ void envoi_donnees() {
 }
 // Affichage de toutes les données
 void afficherDonnees() {
-  Serial.println("\n--- Données des capteurs ---");
-  lireMPU9250();
-  lireGPS();
-  lireBMP280();
+  Serial.print("Accel filtrée - X: ");
+  Serial.print(aX);
+  Serial.print(", Y: ");
+  Serial.print(aY);
+  Serial.print(", Z: ");
+  Serial.println(aZ);
 }
 // Conversion NMEA → Degrés décimaux
 float convertToDecimalDegrees(float nmeaDegrees) {
@@ -106,4 +117,16 @@ float convertToDecimalDegrees(float nmeaDegrees) {
 // delay en seconde
 void delay_second(int s) {
   delay(s * 1000);
+}
+void updateAcceleration() {
+    mySensor.accelUpdate();
+    float rawX = mySensor.accelX();
+    float rawY = mySensor.accelY();
+    float rawZ = mySensor.accelZ();
+    gX = ALPHA * gX + (1 - ALPHA) * rawX;
+    gY = ALPHA * gY + (1 - ALPHA) * rawY;
+    gZ = ALPHA * gZ + (1 - ALPHA) * rawZ;
+    aX = rawX - gX;
+    aY = rawY - gY;
+    aZ = rawZ - gZ;
 }
