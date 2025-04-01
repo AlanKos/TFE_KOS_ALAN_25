@@ -3,129 +3,139 @@
 float gX = 0, gY = 0, gZ = 0;
 float aX, aY, aZ;
 //question sur optimisation de la taille de code!!!!
+float mX, mY, mZ, mDirection; 
 MPU9250_asukiaaa mySensor;
 Adafruit_GPS GPS(&GPS_SERIAL);
 Adafruit_BMP280 bmp;
 const int txPower = 20;
 int counter = 0;
-// Initialisation des capteurs
-void initialiserCapteurs() 
-{
-  Serial.println("Initialisation des capteurs...");
-  // Initialisation du bus I2C
-  Wire.begin(SDA_PIN, SCL_PIN);
-  mySensor.setWire(&Wire);
-  // Initialisation du MPU9250
-  mySensor.beginAccel();
-  mySensor.beginGyro();
-  mySensor.beginMag();
-  Serial.println("MPU9250 prêt.");
-  // Initialisation du GPS
-  GPS_SERIAL.begin(9600, SERIAL_8N1, 16, 17);
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
-  Serial.println("GPS prêt.");
-  // Initialisation du BMP280
-  bmp.begin(0x77);
-  Serial.println("BMP280 prêt.");
-  //Initialisation du LoRa
-  LoRa.setPins(ss, rst, dio0);
-  LoRa.begin(433E6);
-  LoRa.setTxPower(txPower);          // Définit la puissance de transmission à la valeur maximale (20 dBm)
-  LoRa.setSpreadingFactor(12);       // Définit le facteur d'étalement à 12 (pour une portée plus longue)
-  LoRa.setSignalBandwidth(125E3);    // Définit la largeur de bande à 125 kHz (courant pour la longue portée)
-  LoRa.setCodingRate4(5);            // Définit le taux de codage à 4/5 pour améliorer la fiabilité
-  LoRa.setPreambleLength(8);         // Définit la longueur du préambule (aide à la portée)tt
-  Serial.println("LOL");
-  delay(500);
-  LoRa.setSyncWord(0xF3);
-  Serial.println("LoRa prêt.");
-}
-// Lecture du MPU9250
-void lireMPU9250() {
-  if (mySensor.accelUpdate() == 0) {
-    Serial.print("Accel - X: ");
-    Serial.print(mySensor.accelX());
-    Serial.print(", Y: ");
-    Serial.print(mySensor.accelY());
-    Serial.print(", Z: ");
-    Serial.println(mySensor.accelZ());
-    aX = mySensor.accelX();
-    aY = mySensor.accelY();
-    aZ = mySensor.accelZ();
-  }
-  if (mySensor.gyroUpdate() == 0) {
-    Serial.print("Gyro - X: ");
-    Serial.print(mySensor.gyroX());
-    Serial.print(", Y: ");
-    Serial.print(mySensor.gyroY());
-    Serial.print(", Z: ");
-    Serial.println(mySensor.gyroZ());
-  }
-}
-// Lecture du GPS
-void lireGPS() {
-  if (GPS.newNMEAreceived() && GPS.parse(GPS.lastNMEA())) {
-    if (GPS.fix) {
-      float latitude = convertToDecimalDegrees(GPS.latitude);
-      float longitude = convertToDecimalDegrees(GPS.longitude);
-      Serial.print("GPS - Latitude: ");
-      Serial.print(latitude, 6);
-      Serial.print(", Longitude: ");
-      Serial.println(longitude, 6);
+void initialiserCapteurs() {
+    Serial.println("Initialisation des capteurs...");
+    Wire.begin(SDA_PIN, SCL_PIN);
+    mySensor.setWire(&Wire);
+    mySensor.beginAccel();
+    mySensor.beginGyro();
+    mySensor.beginMag();
+    Serial.println("MPU9250 prêt.");
+    GPS_SERIAL.begin(9600, SERIAL_8N1, 16, 17);
+    GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+    GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+    Serial.println("GPS prêt.");
+    if (!bmp.begin(0x77)) {
+        Serial.println("Erreur: BMP280 non détecté!");
+    } else {
+        Serial.println("BMP280 prêt.");
     }
-  }
+    LoRa.setPins(ss, rst, dio0);
+    if (!LoRa.begin(433E6)) {
+        Serial.println("Erreur: LoRa non détecté!");
+    } else {
+        LoRa.setTxPower(txPower);
+        LoRa.setSpreadingFactor(12);
+        LoRa.setSignalBandwidth(125E3);
+        LoRa.setCodingRate4(5);
+        LoRa.setPreambleLength(8);
+        LoRa.setSyncWord(0xF3);
+        Serial.println("LoRa prêt.");
+    }
 }
-// Lecture du BMP280
+void lireMPU9250() {
+    if (mySensor.accelUpdate() == 0) {
+        aX = mySensor.accelX();
+        aY = mySensor.accelY();
+        aZ = mySensor.accelZ();
+    }
+    if (mySensor.gyroUpdate() == 0) {
+        gX = mySensor.gyroX();
+        gY = mySensor.gyroY();
+        gZ = mySensor.gyroZ();
+    }
+    if (mySensor.magUpdate() == 0) {
+        mX = mySensor.magX();
+        mY = mySensor.magY();
+        mZ = mySensor.magZ();
+        mDirection = atan2(mY, mX) * 180 / M_PI;
+    }
+}
+void lireGPS() {
+    if (GPS.newNMEAreceived() && GPS.parse(GPS.lastNMEA())) {
+        if (GPS.fix) {
+            float latitude = convertToDecimalDegrees(GPS.latitude);
+            float longitude = convertToDecimalDegrees(GPS.longitude);
+            Serial.print("GPS - Lat: ");
+            Serial.print(latitude, 6);
+            Serial.print(", Lon: ");
+            Serial.println(longitude, 6);
+        }
+    }
+}
 void lireBMP280() {
-  Serial.print("Température: ");
-  Serial.print(bmp.readTemperature());
-  Serial.println(" °C");
-  Serial.print("Pression: ");
-  Serial.print(bmp.readPressure() / 100.0);
-  Serial.println(" hPa");
-  Serial.print("Altitude: ");
-  Serial.print(bmp.readAltitude(1022.5));
-  Serial.println(" m");
+    Serial.print("Temp: ");
+    Serial.print(bmp.readTemperature());
+    Serial.print("°C, Pression: ");
+    Serial.print(bmp.readPressure() / 100.0);
+    Serial.println(" hPa");
 }
-// Envoi des données par LoRa
 void envoi_donnees() {
-  Serial.print("Sending packet: ");
-  Serial.println(counter);
-  LoRa.beginPacket();
-  LoRa.print("hello ");
-  LoRa.print(counter);
-  LoRa.endPacket();
-  counter++;
-}
-// Affichage de toutes les données
-void afficherDonnees() {
-  Serial.print("Accel filtrée - X: ");
-  Serial.print(aX);
-  Serial.print(", Y: ");
-  Serial.print(aY);
-  Serial.print(", Z: ");
-  Serial.println(aZ);
-}
-// Conversion NMEA → Degrés décimaux
-float convertToDecimalDegrees(float nmeaDegrees) {
-  int degrees = (int)(nmeaDegrees / 100);
-  float minutes = nmeaDegrees - (degrees * 100);
-  return degrees + (minutes / 60.0);
-}
-// delay en seconde
-void delay_second(int s) {
-  delay(s * 1000);
+    String dataToSend = prepareLoRaMessage();
+    LoRa.beginPacket();
+    LoRa.print(dataToSend);
+    LoRa.endPacket();
+    Serial.println("LoRa Sent: " + dataToSend);
+    counter++;
 }
 void updateAcceleration() {
     mySensor.accelUpdate();
     float rawX = mySensor.accelX();
     float rawY = mySensor.accelY();
     float rawZ = mySensor.accelZ();
-    gX = 0.9 * gX + (1 - 0.9) * rawX;
-    gY = 0.9 * gY + (1 - 0.9) * rawY;
-    gZ = 0.9 * gZ + (1 - 0.9) * rawZ;
+
+    gX = 0.9 * gX + 0.1 * rawX;
+    gY = 0.9 * gY + 0.1 * rawY;
+    gZ = 0.9 * gZ + 0.1 * rawZ;
+
     aX = rawX - gX;
     aY = rawY - gY;
     aZ = rawZ - gZ;
+}
+float convertToDecimalDegrees(float nmeaDegrees) {
+    int degrees = (int)(nmeaDegrees / 100);
+    float minutes = nmeaDegrees - (degrees * 100);
+    return degrees + (minutes / 60.0);
+}
+String prepareLoRaMessage() {
+    String message = "Accel_X:" + String(aX, 2) + ",";
+    message += "Accel_Y:" + String(aY, 2) + ",";
+    message += "Accel_Z:" + String(aZ, 2) + ",";
+    message += "Gyro_X:" + String(gX, 2) + ",";
+    message += "Gyro_Y:" + String(gY, 2) + ",";
+    message += "Gyro_Z:" + String(gZ, 2) + ",";
+    message += "Mag_X:" + String(mX, 2) + ",";
+    message += "Mag_Y:" + String(mY, 2) + ",";
+    message += "Mag_Z:" + String(mZ, 2) + ",";
+    message += "Mag_Dir:" + String(mDirection, 2) + ",";
+    if (GPS.fix) {  
+        float latitude = convertToDecimalDegrees(GPS.latitude);
+        float longitude = convertToDecimalDegrees(GPS.longitude);
+        message += "Lat:" + String(latitude, 6) + String(GPS.lat) + ",";
+        message += "Lon:" + String(longitude, 6) + String(GPS.lon) + ",";
+        message += "Alt:" + String(GPS.altitude, 2) + ",";
+        message += "Speed:" + String(GPS.speed, 2) + ",";
+    } else {
+        message += "GPS:NoFix,";
+    }
+    message += "Temp:" + String(bmp.readTemperature(), 2) + ",";
+    message += "Pressure:" + String(bmp.readPressure() / 100.0, 2); 
+    return message;
+}
+void delay_second(int s) {
+  delay(s * 1000); 
+}
+void afficherDonnees() {
+    Serial.print("Accel filtrée - X: ");
+    Serial.print(aX);
+    Serial.print(", Y: ");
+    Serial.print(aY);
+    Serial.print(", Z: ");
+    Serial.println(aZ);
 }

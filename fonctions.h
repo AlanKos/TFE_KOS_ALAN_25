@@ -18,13 +18,18 @@
 extern MPU9250_asukiaaa mySensor;
 extern Adafruit_GPS GPS;
 extern Adafruit_BMP280 bmp;
+extern float gX, gY, gZ;  
+extern float aX, aY, aZ;   
+extern float mX, mY, mZ;  
+extern float mDirection;  
 void initialiserCapteurs(void);
 void lireMPU9250(void);
 void lireGPS(void);
 void lireBMP280(void);
 void afficherDonnees(void);
-float convertToDecimalDegrees(float nmeaDegrees);
-void delay_second(int s);
 void envoi_donnees(void);
 void updateAcceleration(void);
-#endif // FONCTIONS_H
+float convertToDecimalDegrees(float nmeaDegrees);
+void delay_second(int s);
+String prepareLoRaMessage(void);
+#endif 

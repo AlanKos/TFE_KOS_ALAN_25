@@ -6,11 +6,10 @@
 #include "fonctions.h"
 void setup() {
   Serial.begin(115200);
-  while (!Serial)
-    ;
-
+  while (!Serial);
   Serial.println("System initialized");
   initialiserCapteurs();
+  delay_second(1); 
 }
 
 void loop() {
@@ -19,6 +18,11 @@ void loop() {
   lireGPS();
   lireBMP280();
   afficherDonnees();
-  //envoi_donnees();
+  String dataToSend = prepareLoRaMessage();
+  Serial.println("Données LoRa envoyées : " + dataToSend);  
+  LoRa.beginPacket();
+  LoRa.print(dataToSend); 
+  LoRa.endPacket();
+  Serial.println("LoRa Sent: " + dataToSend); 
   delay_second(2);
 }
