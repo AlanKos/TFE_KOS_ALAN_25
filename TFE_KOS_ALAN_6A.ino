@@ -7,8 +7,8 @@
 //faut optimiser!
 //bordel en loop
 //plein de trucs en double jpense faut corriger
-//FAUT FAIRE FONCTIONNER LE LORA!!!!
 //SD comment sa marche ???
+//gps faire fonctionner et magnetometre
 //**********************************************
 #include "fonctions.h"
 void setup() {
@@ -23,13 +23,11 @@ void loop() {
   updateAcceleration();
   Serial.println("\n--- Données des capteurs ---");
   lireGPS();
-  lireBMP280();
   afficherDonnees();
   String dataToSend = prepareLoRaMessage();
-  Serial.println("Données LoRa envoyées : " + dataToSend);  
+  Serial.println("LoRa sent: " + dataToSend);  
   LoRa.beginPacket();
   LoRa.print(dataToSend); 
-  LoRa.endPacket();
-  Serial.println("LoRa Sent: " + dataToSend); 
+  LoRa.endPacket(); 
   delay_second(2);
 }
