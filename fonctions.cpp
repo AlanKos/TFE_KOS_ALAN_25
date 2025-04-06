@@ -35,7 +35,7 @@ void initialiserCapteurs() {
     LoRa.setSignalBandwidth(125E3);
     LoRa.setCodingRate4(5);
     LoRa.setPreambleLength(8);
-    LoRa.setSyncWord(0xF3);
+    //LoRa.setSyncWord(0xF3);
     Serial.println("LoRa prêt.");
   }
 }
@@ -132,6 +132,9 @@ void afficherDonnees() {
   Serial.print("Pression: ");
   Serial.print(bmp.readPressure() / 100.0);
   Serial.println(" hPa");
+  Serial.print("Altitude: ");
+  Serial.print(bmp.readAltitude(1022.5));
+  Serial.println(" m");
   Serial.print("Accel filtrée - X: ");
   Serial.print(aX);
   Serial.print(", Y: ");

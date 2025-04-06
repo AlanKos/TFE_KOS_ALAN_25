@@ -29,5 +29,5 @@ void loop() {
   LoRa.beginPacket();
   LoRa.print(dataToSend); 
   LoRa.endPacket(); 
-  delay_second(2);
+  delay(2000);
 }
