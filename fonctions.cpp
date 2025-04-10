@@ -35,7 +35,7 @@ void initialiserCapteurs() {
     LoRa.setSignalBandwidth(125E3);
     LoRa.setCodingRate4(5);
     LoRa.setPreambleLength(8);
-    //LoRa.setSyncWord(0xF3);
+    LoRa.setSyncWord(0xF3);
     Serial.println("LoRa prêt.");
   }
 }
@@ -119,7 +119,8 @@ String prepareLoRaMessage() {
     message += "GPS:NoFix,";
   }
   message += "Temp:" + String(bmp.readTemperature(), 2) + ",";
-  message += "Pressure:" + String(bmp.readPressure() / 100.0, 2);
+  message += "Pressure:" + String(bmp.readPressure() / 100.0, 2) + ",";
+  message += "Altitude" + String(bmp.readAltitude(1022.5));
   return message;
 }
 void delay_second(int s) {
