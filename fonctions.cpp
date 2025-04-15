@@ -1,22 +1,16 @@
 #include "fonctions.h"
 #include <math.h>
 #include "Bmp280.h"
-float gX = 0, gY = 0, gZ = 0;
-float aX, aY, aZ;
+#include "Mpu9250.h"
 //question sur optimisation de la taille de code!!!!
-float mX, mY, mZ, mDirection;
 MPU9250_asukiaaa mySensor;
 Adafruit_GPS GPS(&GPS_SERIAL);
 const int txPower = 20;
 int counter = 0;
 void initialiserCapteurs() {
   Serial.println("Initialisation des capteurs...");
-  Wire.begin(SDA_PIN, SCL_PIN);
-  mySensor.setWire(&Wire);
-  mySensor.beginAccel();
-  mySensor.beginGyro();
-  mySensor.beginMag();
-  Serial.println("MPU9250 prêt.");
+
+  
   GPS_SERIAL.begin(9600, SERIAL_8N1, 16, 17);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
@@ -34,24 +28,7 @@ void initialiserCapteurs() {
     Serial.println("LoRa prêt.");
   }
 }
-void lireMPU9250() {
-  if (mySensor.accelUpdate() == 0) {
-    aX = mySensor.accelX();
-    aY = mySensor.accelY();
-    aZ = mySensor.accelZ();
-  }
-  if (mySensor.gyroUpdate() == 0) {
-    gX = mySensor.gyroX();
-    gY = mySensor.gyroY();
-    gZ = mySensor.gyroZ();
-  }
-  if (mySensor.magUpdate() == 0) {
-    mX = mySensor.magX();
-    mY = mySensor.magY();
-    mZ = mySensor.magZ();
-    mDirection = atan2(mY, mX) * 180 / M_PI;
-  }
-}
+
 void lireGPS() {
   if (GPS.newNMEAreceived() && GPS.parse(GPS.lastNMEA())) {
     if (GPS.fix) {
@@ -73,20 +50,7 @@ void envoi_donnees() {
   Serial.println("LoRa Sent: " + dataToSend);
   counter++;
 }
-void updateAcceleration() {
-  mySensor.accelUpdate();
-  float rawX = mySensor.accelX();
-  float rawY = mySensor.accelY();
-  float rawZ = mySensor.accelZ();
 
-  gX = 0.9 * gX + 0.1 * rawX;
-  gY = 0.9 * gY + 0.1 * rawY;
-  gZ = 0.9 * gZ + 0.1 * rawZ;
-
-  aX = rawX - gX;
-  aY = rawY - gY;
-  aZ = rawZ - gZ;
-}
 float convertToDecimalDegrees(float nmeaDegrees) {
   int degrees = (int)(nmeaDegrees / 100);
   float minutes = nmeaDegrees - (degrees * 100);

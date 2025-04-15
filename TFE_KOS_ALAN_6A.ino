@@ -13,17 +13,19 @@ void setup() {
   Serial.begin(115200);
   while (!Serial);
   Serial.println("System initialized");
+  Wire.begin(SDA_PIN, SCL_PIN);
   initBmp280();
+  initMpu9250();
   initialiserCapteurs();
   delay_second(1); 
 }
 
 void loop() {
-  updateAcceleration();
   Serial.println("\n--- Données des capteurs ---");
   lireGPS();
   afficherDonnees();
   GetDataBmp280();
+  GetDataMpu9250();
   String dataToSend = prepareLoRaMessage();
   Serial.println("LoRa sent: " + dataToSend);  
   LoRa.beginPacket();
