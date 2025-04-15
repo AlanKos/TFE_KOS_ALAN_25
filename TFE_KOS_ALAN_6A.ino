@@ -8,10 +8,12 @@
 //gps faire fonctionner et magnetometre
 //**********************************************
 #include "fonctions.h"
+
 void setup() {
   Serial.begin(115200);
   while (!Serial);
   Serial.println("System initialized");
+  initBmp280();
   initialiserCapteurs();
   delay_second(1); 
 }
@@ -21,6 +23,7 @@ void loop() {
   Serial.println("\n--- Données des capteurs ---");
   lireGPS();
   afficherDonnees();
+  GetDataBmp280();
   String dataToSend = prepareLoRaMessage();
   Serial.println("LoRa sent: " + dataToSend);  
   LoRa.beginPacket();

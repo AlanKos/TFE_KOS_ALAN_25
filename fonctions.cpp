@@ -1,12 +1,12 @@
 #include "fonctions.h"
 #include <math.h>
+#include "Bmp280.h"
 float gX = 0, gY = 0, gZ = 0;
 float aX, aY, aZ;
 //question sur optimisation de la taille de code!!!!
 float mX, mY, mZ, mDirection;
 MPU9250_asukiaaa mySensor;
 Adafruit_GPS GPS(&GPS_SERIAL);
-Adafruit_BMP280 bmp;
 const int txPower = 20;
 int counter = 0;
 void initialiserCapteurs() {
@@ -21,11 +21,6 @@ void initialiserCapteurs() {
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
   Serial.println("GPS prêt.");
-  if (!bmp.begin(0x77)) {
-    Serial.println("Erreur: BMP280 non détecté!");
-  } else {
-    Serial.println("BMP280 prêt.");
-  }
   LoRa.setPins(ss, rst, dio0);
   if (!LoRa.begin(433E6)) {
     Serial.println("Erreur: LoRa non détecté!");
@@ -118,9 +113,9 @@ String prepareLoRaMessage() {
   } else {
     message += "GPS:NoFix,";
   }
-  message += "Temp:" + String(bmp.readTemperature(), 2) + ",";
-  message += "Pressure:" + String(bmp.readPressure() / 100.0, 2) + ",";
-  message += "Altitude" + String(bmp.readAltitude(1022.5));
+  // message += "Temp:" + String(bmp.readTemperature(), 2) + ",";
+  //message += "Pressure:" + String(bmp.readPressure() / 100.0, 2) + ",";
+  //message += "Altitude" + String(bmp.readAltitude(1022.5));
   return message;
 }
 void delay_second(int s) {
@@ -128,13 +123,13 @@ void delay_second(int s) {
 }
 void afficherDonnees() {
   Serial.print("Temp: ");
-  Serial.print(bmp.readTemperature());
+  Serial.print(Bmp280_Temp);
   Serial.println("°C ");
   Serial.print("Pression: ");
-  Serial.print(bmp.readPressure() / 100.0);
+  Serial.print(Bmp280_Press / 100.0);
   Serial.println(" hPa");
   Serial.print("Altitude: ");
-  Serial.print(bmp.readAltitude(1022.5));
+  Serial.print(Bmp280_Alt);
   Serial.println(" m");
   Serial.print("Accel filtrée - X: ");
   Serial.print(aX);
@@ -148,4 +143,16 @@ void afficherDonnees() {
   Serial.print(gY);
   Serial.print(", Z: ");
   Serial.println(gZ);
+}
+
+String millisToTimeString(unsigned long currentMillis) {
+  unsigned long hours = currentMillis / 3600000UL;
+  unsigned long minutes = (currentMillis % 3600000UL) / 60000UL;
+  unsigned long seconds = (currentMillis % 60000UL) / 1000UL;
+  unsigned long milliseconds = currentMillis % 1000UL;
+
+  char buffer[15];  // "hh:mm:ss.ms" + null terminator
+  snprintf(buffer, sizeof(buffer), "%02lu:%02lu:%02lu.%03lu", hours, minutes, seconds, milliseconds);
+
+  return String(buffer);
 }

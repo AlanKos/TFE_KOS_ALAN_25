@@ -1,10 +1,10 @@
 #ifndef FONCTIONS_H
 #define FONCTIONS_H
 #include <Arduino.h>
+#include "Bmp280.h"
 #include <Wire.h>
 #include <MPU9250_asukiaaa.h>
 #include <Adafruit_GPS.h>
-#include <Adafruit_BMP280.h>
 #include <SPI.h>
 #include <LoRa.h>
 #define ss 14
@@ -17,12 +17,14 @@
 #define PMTK_SET_NMEA_OUTPUT_RMCGGA "$PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*28"
 extern MPU9250_asukiaaa mySensor;
 extern Adafruit_GPS GPS;
-extern Adafruit_BMP280 bmp;
+//extern Adafruit_BMP280 bmp;
 extern float gX, gY, gZ;  
 extern float aX, aY, aZ;   
 extern float mX, mY, mZ;  
 extern float mDirection;  
+String millisToTimeString(unsigned long currentMillis); 
 void initialiserCapteurs(void);
+//void initBmp280(void);
 void lireMPU9250(void);
 void lireGPS(void);
 void lireBMP280(void);
