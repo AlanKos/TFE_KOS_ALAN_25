@@ -23,12 +23,9 @@ void setup() {
 void loop() {
   Serial.println("\n--- Données des capteurs ---");
   //lireGPS();
-  afficherDonnees();
-  delay(200);
   GetDataBmp280();
-  delay(200);
   GetDataMpu9250();
-  delay(200);
+  afficherDonnees();
   sendLoRa();
   delay(1000);
 }

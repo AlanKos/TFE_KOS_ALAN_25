@@ -5,7 +5,6 @@
 
 extern float gX, gY, gZ ;
 extern float aX, aY, aZ;
-extern float mX, mY, mZ, mDirection;
 
 void initMpu9250(void);
 void GetDataMpu9250(void);

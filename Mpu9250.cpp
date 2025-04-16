@@ -2,7 +2,6 @@
 MPU9250_asukiaaa mySensor;
 float gX = 0, gY = 0, gZ = 0;
 float aX = 0, aY = 0, aZ = 0;
-float mX = 0, mY = 0, mZ = 0, mDirection = 0;
 
 void initMpu9250() {
   Serial.println("Init MPU9250");
@@ -35,12 +34,6 @@ void GetDataMpu9250(void) {
     gX = mySensor.gyroX();
     gY = mySensor.gyroY();
     gZ = mySensor.gyroZ();
-  }
-  if (mySensor.magUpdate() == 0) {
-    mX = mySensor.magX();
-    mY = mySensor.magY();
-    mZ = mySensor.magZ();
-    mDirection = atan2(mY, mX) * 180 / M_PI;
   }
   updateAcceleration();
 }
