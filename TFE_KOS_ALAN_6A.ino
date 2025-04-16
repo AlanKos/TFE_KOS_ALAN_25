@@ -16,20 +16,19 @@ void setup() {
   Wire.begin(SDA_PIN, SCL_PIN);
   initBmp280();
   initMpu9250();
-  initialiserCapteurs();
+  initLoRa();
   delay_second(1); 
 }
 
 void loop() {
   Serial.println("\n--- Données des capteurs ---");
-  lireGPS();
+  //lireGPS();
   afficherDonnees();
+  delay(200);
   GetDataBmp280();
+  delay(200);
   GetDataMpu9250();
-  String dataToSend = prepareLoRaMessage();
-  Serial.println("LoRa sent: " + dataToSend);  
-  LoRa.beginPacket();
-  LoRa.print(dataToSend); 
-  LoRa.endPacket(); 
-  delay(2000);
+  delay(200);
+  sendLoRa();
+  delay(1000);
 }

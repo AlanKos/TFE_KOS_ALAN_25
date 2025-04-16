@@ -1,5 +1,5 @@
 #include "Mpu9250.h"
-
+MPU9250_asukiaaa mySensor;
 float gX = 0, gY = 0, gZ = 0;
 float aX = 0, aY = 0, aZ = 0;
 float mX = 0, mY = 0, mZ = 0, mDirection = 0;
@@ -10,7 +10,7 @@ void initMpu9250() {
   mySensor.beginAccel();
   mySensor.beginGyro();
   mySensor.beginMag();
-  
+
   bool accelOK = !isnan(mySensor.accelX());
   bool gyroOK  = !isnan(mySensor.gyroX());
   bool magOK   = !isnan(mySensor.magX());

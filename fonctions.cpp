@@ -2,33 +2,8 @@
 #include <math.h>
 #include "Bmp280.h"
 #include "Mpu9250.h"
-//question sur optimisation de la taille de code!!!!
-MPU9250_asukiaaa mySensor;
-Adafruit_GPS GPS(&GPS_SERIAL);
-const int txPower = 20;
-int counter = 0;
-void initialiserCapteurs() {
-  Serial.println("Initialisation des capteurs...");
-
-  
-  GPS_SERIAL.begin(9600, SERIAL_8N1, 16, 17);
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
-  Serial.println("GPS prêt.");
-  LoRa.setPins(ss, rst, dio0);
-  if (!LoRa.begin(433E6)) {
-    Serial.println("Erreur: LoRa non détecté!");
-  } else {
-    LoRa.setTxPower(txPower);
-    LoRa.setSpreadingFactor(12);
-    LoRa.setSignalBandwidth(125E3);
-    LoRa.setCodingRate4(5);
-    LoRa.setPreambleLength(8);
-    LoRa.setSyncWord(0xF3);
-    Serial.println("LoRa prêt.");
-  }
-}
-
+#include "LoRaAK.h"
+/*
 void lireGPS() {
   if (GPS.newNMEAreceived() && GPS.parse(GPS.lastNMEA())) {
     if (GPS.fix) {
@@ -41,21 +16,15 @@ void lireGPS() {
     }
   }
 }
+*/
 
-void envoi_donnees() {
-  String dataToSend = prepareLoRaMessage();
-  LoRa.beginPacket();
-  LoRa.print(dataToSend);
-  LoRa.endPacket();
-  Serial.println("LoRa Sent: " + dataToSend);
-  counter++;
-}
-
+/*
 float convertToDecimalDegrees(float nmeaDegrees) {
   int degrees = (int)(nmeaDegrees / 100);
   float minutes = nmeaDegrees - (degrees * 100);
   return degrees + (minutes / 60.0);
 }
+*/
 String prepareLoRaMessage() {
   String message = "Accel_X:" + String(aX, 2) + ",";
   message += "Accel_Y:" + String(aY, 2) + ",";
@@ -67,7 +36,7 @@ String prepareLoRaMessage() {
   message += "Mag_Y:" + String(mY, 2) + ",";
   message += "Mag_Z:" + String(mZ, 2) + ",";
   message += "Mag_Dir:" + String(mDirection, 2) + ",";
-  if (GPS.fix) {
+ /* if (GPS.fix) {
     float latitude = convertToDecimalDegrees(GPS.latitude);
     float longitude = convertToDecimalDegrees(GPS.longitude);
     message += "Lat:" + String(latitude, 6) + String(GPS.lat) + ",";
@@ -77,6 +46,7 @@ String prepareLoRaMessage() {
   } else {
     message += "GPS:NoFix,";
   }
+  */
   // message += "Temp:" + String(bmp.readTemperature(), 2) + ",";
   //message += "Pressure:" + String(bmp.readPressure() / 100.0, 2) + ",";
   //message += "Altitude" + String(bmp.readAltitude(1022.5));
