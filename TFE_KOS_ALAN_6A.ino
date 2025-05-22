@@ -1,11 +1,8 @@
-//**********************************************
+//***********
+***********************************
 // Kos Alan 6A
 // Station de mesure embarquée pour voiture
 // Utilise : ESP32 DEVKIT V1, MPU_9250, GPSPA1010D, BMP280
-//****************COMENTAIRES*******************
-//faut optimiser!
-//SD comment sa marche ???
-//gps faire fonctionner et magnetometre
 //**********************************************
 #include "fonctions.h"
 
@@ -14,7 +11,10 @@ void setup() {
   while (!Serial);
   Serial.println("System initialized");
   Wire.begin(SDA_PIN, SCL_PIN);
+  pinMode(tachPin, INPUT);
+  attachInterrupt(digitalPinToInterrupt(tachPin), isrPWM, CHANGE);
   initBmp280();
+  init_GPS(0x10);
   initMpu9250();
   initLoRa();
   delay_second(1); 
@@ -22,9 +22,9 @@ void setup() {
 
 void loop() {
   Serial.println("\n--- Données des capteurs ---");
-  //lireGPS();
   GetDataBmp280();
   GetDataMpu9250();
+  mesure_GPS();
   afficherDonnees();
   sendLoRa();
   delay(1000);

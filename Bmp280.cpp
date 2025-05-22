@@ -16,7 +16,7 @@ void initBmp280(void) {
 void GetDataBmp280(void) {
   temp = bmp.readTemperature();
   pressure = bmp.readPressure();
-  altitude = bmp.readAltitude(1008);
+  altitude = bmp.readAltitude(1021.5);
   Bmp280_Temp = temp;
   Bmp280_Press = pressure;
   Bmp280_Alt = altitude;

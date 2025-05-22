@@ -3,28 +3,20 @@
 #include "Bmp280.h"
 #include "Mpu9250.h"
 #include "LoRaAK.h"
-/*
-void lireGPS() {
-  if (GPS.newNMEAreceived() && GPS.parse(GPS.lastNMEA())) {
-    if (GPS.fix) {
-      float latitude = convertToDecimalDegrees(GPS.latitude);
-      float longitude = convertToDecimalDegrees(GPS.longitude);
-      Serial.print("GPS - Lat: ");
-      Serial.print(latitude, 6);
-      Serial.print(", Lon: ");
-      Serial.println(longitude, 6);
-    }
-  }
-}
-*/
+#include "GPS.h"
+#include <Adafruit_GPS.h>
+const uint8_t tachPin = 4;
+volatile uint32_t prevRiseTime = 0;
+volatile uint32_t riseTime     = 0;
+volatile uint32_t fallTime     = 0;
+volatile uint32_t highTime     = 0;
+volatile uint32_t periodTime   = 0;
+volatile bool     newData      = false;
 
-/*
-float convertToDecimalDegrees(float nmeaDegrees) {
-  int degrees = (int)(nmeaDegrees / 100);
-  float minutes = nmeaDegrees - (degrees * 100);
-  return degrees + (minutes / 60.0);
-}
-*/
+float duty = 0;
+float freq = 0;
+float rpm = 0;
+
 String prepareLoRaMessage() {
   String message = "Accel_X:" + String(aX, 2) + ",";
   message += "Accel_Y:" + String(aY, 2) + ",";
@@ -32,24 +24,6 @@ String prepareLoRaMessage() {
   message += "Gyro_X:" + String(gX, 2) + ",";
   message += "Gyro_Y:" + String(gY, 2) + ",";
   message += "Gyro_Z:" + String(gZ, 2) + ",";
-  message += "Mag_X:" + String(mX, 2) + ",";
-  message += "Mag_Y:" + String(mY, 2) + ",";
-  message += "Mag_Z:" + String(mZ, 2) + ",";
-  message += "Mag_Dir:" + String(mDirection, 2) + ",";
- /* if (GPS.fix) {
-    float latitude = convertToDecimalDegrees(GPS.latitude);
-    float longitude = convertToDecimalDegrees(GPS.longitude);
-    message += "Lat:" + String(latitude, 6) + String(GPS.lat) + ",";
-    message += "Lon:" + String(longitude, 6) + String(GPS.lon) + ",";
-    message += "Alt:" + String(GPS.altitude, 2) + ",";
-    message += "Speed:" + String(GPS.speed, 2) + ",";
-  } else {
-    message += "GPS:NoFix,";
-  }
-  */
-  // message += "Temp:" + String(bmp.readTemperature(), 2) + ",";
-  //message += "Pressure:" + String(bmp.readPressure() / 100.0, 2) + ",";
-  //message += "Altitude" + String(bmp.readAltitude(1022.5));
   return message;
 }
 void delay_second(int s) {
@@ -77,6 +51,43 @@ void afficherDonnees() {
   Serial.print(gY);
   Serial.print(", Z: ");
   Serial.println(gZ);
+  Serial.print("Date: ");
+  Serial.print(GPS.day, DEC);
+  Serial.print('/');
+  Serial.print(GPS.month, DEC);
+  Serial.print("/20");
+  Serial.println(GPS.year, DEC);
+  Serial.print("Fix: ");
+  Serial.print((int)GPS.fix);
+  Serial.print(" quality: ");
+  Serial.println((int)GPS.fixquality);
+  if (GPS.fix) {  
+    Serial.println("GPS Data:");
+    Serial.print("  Latitude: ");
+    Serial.print(GPS.latitude, 4);
+    Serial.print(GPS.lat);
+    Serial.print("  Longitude: ");
+    Serial.print(GPS.longitude, 4);
+    Serial.println(GPS.lon);
+    Serial.printf("Sattelites: %02d \n", GPS.satellites);
+    Serial.printf("Altitude: %.2f meters \n", GPS.altitude);
+    Serial.printf("Speed: %.2f knots \n", GPS.speed);
+    Serial.printf("Course: %.2f degrees \n", GPS.angle);
+    Serial.printf("Date: %02d / %02d / %02d \n", GPS.day, GPS.month, GPS.year);
+    Serial.printf("Time: %02d:%02d:%02d \n", GPS.hour, GPS.minute, GPS.seconds);
+  }
+   else
+  {
+    Serial.println("Waiting for GPS fix...");
+  }
+  Serial.print("Duty cycle: ");
+  Serial.print(duty, 1);
+  Serial.println(" %\t");
+  Serial.print("Freq: ");
+  Serial.print(freq, 1);
+  Serial.println(" Hz\t");
+  Serial.print("RPM: ");
+  Serial.println(rpm, 0);
 }
 
 String millisToTimeString(unsigned long currentMillis) {
@@ -89,4 +100,38 @@ String millisToTimeString(unsigned long currentMillis) {
   snprintf(buffer, sizeof(buffer), "%02lu:%02lu:%02lu.%03lu", hours, minutes, seconds, milliseconds);
 
   return String(buffer);
+}
+
+void tacy() {
+  if (newData) {
+    noInterrupts();
+    uint32_t high = highTime;
+    uint32_t period = periodTime;
+    newData = false;
+    interrupts();
+
+    duty = (float)high / (float)period * 100.0;
+    freq = 1e6 / (float)period;
+    rpm = freq * 60.0;
+  }
+}
+
+void isrPWM() {
+  uint32_t t = micros();
+  bool level = digitalRead(tachPin);
+
+  if (level) {
+    riseTime = t;
+    if (prevRiseTime != 0) {
+      periodTime = t - prevRiseTime;
+    }
+    prevRiseTime = t;
+
+  } else {
+    fallTime = t;
+    if (riseTime != 0) {
+      highTime = fallTime - riseTime;
+      newData = true;
+    }
+  }
 }

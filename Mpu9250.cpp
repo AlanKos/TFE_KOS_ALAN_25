@@ -8,19 +8,16 @@ void initMpu9250() {
   mySensor.setWire(&Wire);
   mySensor.beginAccel();
   mySensor.beginGyro();
-  mySensor.beginMag();
 
   bool accelOK = !isnan(mySensor.accelX());
   bool gyroOK  = !isnan(mySensor.gyroX());
-  bool magOK   = !isnan(mySensor.magX());
 
-  if (accelOK && gyroOK && magOK) {
+  if (accelOK && gyroOK) {
     Serial.println("MPU9250 prêt.");
   } else {
     Serial.println("Erreur init MPU9250:");
     if (!accelOK) Serial.println(" - Accéléro");
     if (!gyroOK)  Serial.println(" - Gyro");
-    if (!magOK)   Serial.println(" - Magnéto");
   }
 }
 
