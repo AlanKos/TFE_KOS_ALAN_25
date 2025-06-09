@@ -1,5 +1,4 @@
-//***********
-***********************************
+//**********************************************
 // Kos Alan 6A
 // Station de mesure embarquée pour voiture
 // Utilise : ESP32 DEVKIT V1, MPU_9250, GPSPA1010D, BMP280
@@ -11,8 +10,6 @@ void setup() {
   while (!Serial);
   Serial.println("System initialized");
   Wire.begin(SDA_PIN, SCL_PIN);
-  pinMode(tachPin, INPUT);
-  attachInterrupt(digitalPinToInterrupt(tachPin), isrPWM, CHANGE);
   initBmp280();
   init_GPS(0x10);
   initMpu9250();

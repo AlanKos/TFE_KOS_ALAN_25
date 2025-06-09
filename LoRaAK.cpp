@@ -1,6 +1,6 @@
 #include <LoRa.h>         
 #include "LoRaAK.h"
-#include "fonctions.h"     // Ou tout autre header avec prepareLoRaMessage()
+#include "fonctions.h"   
 
 const int txPower = 20;
 
