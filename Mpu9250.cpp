@@ -42,7 +42,7 @@ void updateAcceleration() {
   float rawZ = mySensor.accelZ();
 
   gX = 0.9 * gX + 0.1 * rawX;
-  gY = 0.9 * gY + 0.1 * rawY;
+  gY = 0.9 * gY + 0.1 * rawY;     // code de stack overflow pour filtrer accel
   gZ = 0.9 * gZ + 0.1 * rawZ;
 
   aX = rawX - gX;

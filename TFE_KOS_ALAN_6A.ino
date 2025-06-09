@@ -11,7 +11,7 @@ void setup() {
   Serial.println("System initialized");
   Wire.begin(SDA_PIN, SCL_PIN);
   initBmp280();
-  init_GPS(0x10);
+  init_GPS();
   initMpu9250();
   initLoRa();
   delay_second(1); 

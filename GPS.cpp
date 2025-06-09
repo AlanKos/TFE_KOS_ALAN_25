@@ -1,32 +1,14 @@
 #include "GPS.h"
-
-HardwareSerial GPSSerial(2);  
-Adafruit_GPS GPS(&GPSSerial);
-byte status_GPS = 1;
-
-int init_GPS(char GPS_adr) {
-  GPSSerial.begin(9600);         // Démarre la communication série avec le GPS
-  GPS.begin(9600);               // Initialisation Adafruit GPS
-
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+Adafruit_GPS GPS(&Wire);
+#define GPSECHO false
+uint32_t timer = millis();
+void init_GPS(void) {
+  GPS.begin(0x10);           // Initialisation GPS
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);// recomended minimum et fix data
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);  
-  GPS.sendCommand(PMTK_API_SET_FIX_CTL_1HZ);
+  GPS.sendCommand(PGCMD_ANTENNA); //status antenne
+  GPS.println(PMTK_Q_RELEASE); // demande version firmware
 
-  if (GPS.begin(9600)) {
-    status_GPS = 0;
-  } else {
-    status_GPS = 1;
-  }
-
-  return status_GPS;
-}
-
-void etat_GPS(char GPS_adresse) {
-  if (init_GPS(GPS_adresse) == 1) {
-    Serial.println("échec démarrage GPS ");
-  } else {
-    Serial.println("initialisation GPS OK");
-  }
 }
 
 void mesure_GPS() {
@@ -44,14 +26,6 @@ void affichage_GPS() {
 }   
 
 void lecture_GPS() {
-  if (status_GPS == 0) {
-    mesure_GPS();
-    affichage_GPS();
-  }
-}
-
-float convertToDecimalDegrees(float nmeaDegrees) {
-  int degrees = (int)(nmeaDegrees / 100);
-  float minutes = nmeaDegrees - (degrees * 100);
-  return degrees + (minutes / 60.0);
+  mesure_GPS();
+  affichage_GPS();
 }
